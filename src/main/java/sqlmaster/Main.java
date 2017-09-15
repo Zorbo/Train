@@ -15,11 +15,19 @@ public class Main {
         try {
 
             jdbcDBM = new JdbcDBM();
-            //  jdbcDBM.updateEmail("John", "Doe", "csillagharcos@gmail.com");
+            //  jdbcDBM.updateEmail("John", "Doe", "legkalapacs@gmail.com");
             //  jdbcDBM.insertNewRow("Arthur","Almodovar","arthur@gobabyplease.com","specOps",3000);
-            //  jdbcDBM.insertNewRow("Boby", "Supersonic", "bobo@gmail.com", "daily hero", 3000.12);
+            //  jdbcDBM.insertNewRow("Boby", "Supersonic", "bo@gil.com", "daily hero", 3000.12);
             //  jdbcDBM.deleteUser("Supersonic","Boby");
+            //  jdbcDBM.selectEmployeesBySalaryAndDepartment(80000,"Legal");
+            //  System.out.println("******************************");
+            //  jdbcDBM.selectEmployeesBySalaryAndDepartment(25000,"HR");
+            //  jdbcDBM.increaseSalaryByDepartment("Engineering",10000);
+            //  jdbcDBM.greetDepartment("Engineering");
+            jdbcDBM.countEmployeeByDepartment("Engineering");
+            jdbcDBM.getEmployeesFromTheDepartment("Engineering");
             jdbcDBM.getDatabase();
+
 
         } catch (SQLException e) {
             e.printStackTrace();

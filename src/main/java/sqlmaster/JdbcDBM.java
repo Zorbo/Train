@@ -4,13 +4,16 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.sql.*;
 
+
 public class JdbcDBM {
 
 
     private Connection myConnection = null;
     private Statement myStatement = null;
     private ResultSet myResultSet = null;
-                                                                      //this will get rid of SSL warning
+    private PreparedStatement myPreparedStatement = null;
+    private CallableStatement myCallableStatement = null;
+    //this will get rid of SSL warning
     private String dbUrl = "jdbc:mysql://localhost:3306/demo" + "?useSSL=false";
     private String user = "student";
     private String pass = "student";
@@ -32,22 +35,52 @@ public class JdbcDBM {
 
             try {
 
-
-                // 2. Create Statement
-                myStatement = myConnection.createStatement();
-
-                System.out.println("Inserting a new employee to database\n");
-                //Here we insert one or more row data, the int show how many rows are affected
-                int rowsAffected = myStatement.executeUpdate("insert into employees " +
+                // Prepare Statement
+                myPreparedStatement = myConnection.prepareStatement("insert into employees " +
                         "(last_name, first_name, email, department, salary)" +
                         "values " +
-                        "('" + lastName + "','" + firstName + "','" + email + "'," +
-                        "'" + department + "'," + salary + ")");
-            } catch (Exception exc) {
+                        "(?,?,?,?,?)");
+                System.out.println("Inserting a new employee to database\n");
+                // THE ? IS LEFT TO RIGHT: 1,2,3,4,5
+                myPreparedStatement.setString(1, lastName);
+                myPreparedStatement.setString(2, firstName);
+                myPreparedStatement.setString(3, email);
+                myPreparedStatement.setString(4, department);
+                myPreparedStatement.setDouble(5, salary);
+
+                // Execute SQL query
+                myPreparedStatement.executeUpdate();
+
+            } catch (SQLException exc) {
                 exc.printStackTrace();
             }
         }
 
+    }
+
+    public void selectEmployeesBySalaryAndDepartment(double aboveSalary, String department) throws SQLException {
+
+        if (!(validateString(department))) {
+            throw new IllegalArgumentException("Invalid department");
+        }
+
+        try {
+            // 1. Prepare statement
+            myPreparedStatement = myConnection.prepareStatement("select * from employees where salary > ? and department=?");
+
+            // 2. Set parameters
+            myPreparedStatement.setDouble(1, aboveSalary);
+            myPreparedStatement.setString(2, department);
+
+            // 3. Execute SQL query
+            myResultSet = myPreparedStatement.executeQuery();
+
+            // Call the testing method
+            display(myResultSet);
+
+        } catch (SQLException exc) {
+            exc.printStackTrace();
+        }
     }
 
 
@@ -58,37 +91,144 @@ public class JdbcDBM {
 
             try {
 
-                myStatement = myConnection.createStatement();
+                myPreparedStatement = myConnection.prepareStatement("update employees " +
+                        "set email= ? " +
+                        "where last_name= ? " + "and first_name=?");
+
+                myPreparedStatement.setString(1, email);
+                myPreparedStatement.setString(2, lastName);
+                myPreparedStatement.setString(3, firstName);
 
                 System.out.println("Modify an employee email address in the database\n");
-                int rowsAffectedUpdate = myStatement.executeUpdate(
-                        "update employees " +
-                                "set email='" + email + "' " +
-                                "where last_name='" + lastName + "' " + "and first_name='" + firstName + "'");
+                // Execute SQL query
+                myPreparedStatement.executeUpdate();
 
-            } catch (Exception exc) {
+            } catch (SQLException exc) {
                 exc.printStackTrace();
             }
         }
     }
 
-    public void deleteUser(String lastName, String firstName) throws SQLException{
+    public void deleteUser(String lastName, String firstName) throws SQLException {
 
-        if (validateString(lastName) && validateString(firstName)){
+        if (validateString(lastName) && validateString(firstName)) {
 
             try {
 
-                myStatement = myConnection.createStatement();
 
-                System.out.println("Deleted employee: " + firstName + " " + lastName + "from the database\n");
-                int rowsAffectedDelete = myStatement.executeUpdate(
-                        "delete from employees " +
-                                "where last_name='" + lastName + "' " + "and first_name='" + firstName + "'");
+                System.out.println("Deleted employee: " + firstName + " " + lastName + " from the database\n");
+                myPreparedStatement = myConnection.prepareStatement("delete from employees " +
+                        "where last_name=? " + "and first_name=?");
 
-            } catch (Exception exc) {
+                myPreparedStatement.setString(1, lastName);
+                myPreparedStatement.setString(2, firstName);
+
+                myPreparedStatement.executeUpdate();
+
+            } catch (SQLException exc) {
                 exc.printStackTrace();
             }
         }
+    }
+
+    // STORED PROCEDURES IN SQL, NEED A STORED PROCEDURE IN THE SQL DATABASE!!
+
+    // THIS METHOD USE IN PARAMETERS
+    public void increaseSalaryByDepartment(String department, double amountToRaise) throws SQLException {
+
+        if (!(validateString(department))) {
+            throw new IllegalArgumentException("Invalid department: " + department);
+        }
+
+        try {
+            myCallableStatement = myConnection.prepareCall("{call increase_salaries_for_department(?, ?)}");
+
+            myCallableStatement.setString(1, department);
+            myCallableStatement.setDouble(2, amountToRaise);
+
+            // Execute the statement
+            System.out.println("\n\nCalling stored procedure.  increase_salaries_for_department('" +
+                    department + "', " + amountToRaise + ")");
+            myCallableStatement.execute();
+            System.out.println("Finished calling procedure");
+        } catch (SQLException exc) {
+            exc.printStackTrace();
+        }
+    }
+
+    // THIS METHOD USE INOUT PARAMETERS
+    public void greetDepartment(String department) throws SQLException {
+
+        if (!(validateString(department))) {
+            throw new IllegalArgumentException("Invalid department: " + department);
+        }
+
+        try {
+            myCallableStatement = myConnection.prepareCall("{call greet_the_department(?)}");
+
+            myCallableStatement.registerOutParameter(1, Types.VARCHAR); // USE THIS FOR INOUT
+            myCallableStatement.setString(1, department);
+
+            // Call stored procedure
+            myCallableStatement.execute();
+
+            // Get the value of the INOUT parameter
+            String theResult = myCallableStatement.getString(1);
+
+            System.out.println("\nThe result = " + theResult);
+
+        } catch (SQLException exc) {
+            exc.printStackTrace();
+        }
+    }
+
+    public void countEmployeeByDepartment(String department) throws SQLException {
+
+        if (!(validateString(department))) {
+            throw new IllegalArgumentException("Invalid department: " + department);
+        }
+
+        try {
+
+            myCallableStatement = myConnection.prepareCall("{call get_count_for_department(?,?)}");
+
+            myCallableStatement.setString(1, department);
+            myCallableStatement.registerOutParameter(2, Types.INTEGER); // USE THIS FOR OUT
+
+            myCallableStatement.execute();
+
+            // Get the value of the OUT parameter
+            int theCount = myCallableStatement.getInt(2);
+
+            System.out.println("\nThe count = " + theCount);
+
+        } catch (SQLException exc) {
+            exc.printStackTrace();
+        }
+    }
+
+    public void getEmployeesFromTheDepartment(String department) throws SQLException {
+
+        if (!(validateString(department))) {
+            throw new IllegalArgumentException("Invalid department: " + department);
+        }
+
+        try {
+            myCallableStatement = myConnection.prepareCall("{call get_employees_for_department (?)}");
+
+            myCallableStatement.setString(1,department);
+            myCallableStatement.execute();
+
+            // Get the result set
+            myResultSet = myCallableStatement.getResultSet();
+
+            // display
+            display(myResultSet);
+
+        } catch (SQLException exc){
+            exc.printStackTrace();
+        }
+
     }
 
     public void getDatabase() throws SQLException {
@@ -128,12 +268,23 @@ public class JdbcDBM {
         return result;
     }
 
-    public void closeResource() throws SQLException{
+    public void closeResource() throws SQLException {
 
         if (myStatement != null) {
             myStatement.close();
         }
+    }
 
+    // TESTING METHOD ONLY FOR TESTING
+    private void display(ResultSet myRs) throws SQLException {
+        while (myRs.next()) {
+            String lastName = myRs.getString("last_name");
+            String firstName = myRs.getString("first_name");
+            double salary = myRs.getDouble("salary");
+            String department = myRs.getString("department");
+
+            System.out.printf("%s, %s, %.2f, %s\n", lastName, firstName, salary, department);
+        }
     }
 
 }
