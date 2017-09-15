@@ -7,25 +7,31 @@ import java.sql.*;
 public class JdbcDBM {
 
 
-    private static Connection myConnection = null;
-    private static Statement myStatement = null;
-    private static ResultSet myResultSet = null;
+    private Connection myConnection = null;
+    private Statement myStatement = null;
+    private ResultSet myResultSet = null;
                                                                       //this will get rid of SSL warning
-    private static String dbUrl = "jdbc:mysql://localhost:3306/demo" + "?useSSL=false";
-    private static String user = "student";
-    private static String pass = "student";
+    private String dbUrl = "jdbc:mysql://localhost:3306/demo" + "?useSSL=false";
+    private String user = "student";
+    private String pass = "student";
 
+    public JdbcDBM() throws SQLException {
 
+        // 1. Get connection to database, in the constructor you can initilizate THE CONNECTON
+        // you can even pass the database parameters here!!!
+        // if you initilizate the connecton here you need to use a separate Resource close method
+        myConnection = DriverManager.getConnection(dbUrl, user, pass);
+        System.out.println("Database connection successful!\n");
 
-    public static void insertNewRow(String firstName, String lastName, String email, String department, double salary) throws SQLException {
+    }
+
+    public void insertNewRow(String firstName, String lastName, String email, String department, double salary) throws SQLException {
 
         if (validateString(firstName) && validateString(lastName) && isValidEmailAddress(email) &&
                 validateString(department)) {
 
             try {
-                // 1. Get connection to database
-                myConnection = DriverManager.getConnection(dbUrl, user, pass);
-                System.out.println("Database connection successful!\n");
+
 
                 // 2. Create Statement
                 myStatement = myConnection.createStatement();
@@ -39,26 +45,18 @@ public class JdbcDBM {
                         "'" + department + "'," + salary + ")");
             } catch (Exception exc) {
                 exc.printStackTrace();
-            } finally {
-                // INSPECT THIS CODE ABOVE MAYBE THIS IS THE PROBLEM!!!
-                if (myStatement != null) {
-                    myStatement.close();
-                }
             }
         }
 
     }
 
-    // Need a method to update and delete
 
-    public static void updateEmail(String firstName, String lastName, String email) throws SQLException {
+    public void updateEmail(String firstName, String lastName, String email) throws SQLException {
 
         if (validateString(firstName) && validateString(lastName) && isValidEmailAddress(email)) {
 
 
             try {
-                myConnection = DriverManager.getConnection(dbUrl, user, pass);
-                System.out.println("Database connection successful!\n");
 
                 myStatement = myConnection.createStatement();
 
@@ -70,47 +68,34 @@ public class JdbcDBM {
 
             } catch (Exception exc) {
                 exc.printStackTrace();
-            } finally {
-                // INSPECT THIS CODE ABOVE MAYBE THIS IS THE PROBLEM!!!
-                if (myStatement != null) {
-                    myStatement.close();
-                }
             }
         }
     }
 
-    public static void deleteUser(String lastName, String firstName) throws SQLException{
+    public void deleteUser(String lastName, String firstName) throws SQLException{
 
         if (validateString(lastName) && validateString(firstName)){
 
             try {
-                myConnection = DriverManager.getConnection(dbUrl, user, pass);
-                System.out.println("Database connection successful!\n");
 
                 myStatement = myConnection.createStatement();
 
-                System.out.println("Deleted employee: " + firstName + " " + lastName + " from the database\n");
+                System.out.println("Deleted employee: " + firstName + " " + lastName + "from the database\n");
                 int rowsAffectedDelete = myStatement.executeUpdate(
                         "delete from employees " +
                                 "where last_name='" + lastName + "' " + "and first_name='" + firstName + "'");
 
             } catch (Exception exc) {
                 exc.printStackTrace();
-            } finally {
-                // INSPECT THIS CODE ABOVE MAYBE THIS IS THE PROBLEM!!!
-                if (myStatement != null) {
-                    myStatement.close();
-                }
             }
-
-
         }
     }
 
-    public static void getDatabase() throws SQLException {
-
+    public void getDatabase() throws SQLException {
 
         try {
+
+            myStatement = myConnection.createStatement();
 
             // 4. Verify this by getting a list of employees
             myResultSet = myStatement.executeQuery("select * from employees order by last_name");
@@ -124,20 +109,15 @@ public class JdbcDBM {
         } catch (
                 Exception exc) {
             exc.printStackTrace();
-        } finally {
-            // INSPECT THIS CODE ABOVE MAYBE THIS IS THE PROBLEM!!!
-            if (myStatement != null) {
-                myStatement.close();
-            }
         }
     }
 
-    private static boolean validateString(String s) {
+    private boolean validateString(String s) {
 
         return (s != null) && (!(s.isEmpty()));
     }
 
-    private static boolean isValidEmailAddress(String email) {
+    private boolean isValidEmailAddress(String email) {
         boolean result = true;
         try {
             InternetAddress emailAddr = new InternetAddress(email);
@@ -146,6 +126,14 @@ public class JdbcDBM {
             result = false;
         }
         return result;
+    }
+
+    public void closeResource() throws SQLException{
+
+        if (myStatement != null) {
+            myStatement.close();
+        }
+
     }
 
 }
