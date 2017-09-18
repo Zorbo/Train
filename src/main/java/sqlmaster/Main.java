@@ -1,60 +1,41 @@
 package sqlmaster;
 
-import java.io.IOException;
-import java.sql.SQLException;
-
 public class Main {
-
 
     public static void main(String[] args) {
 
 
-        JdbcDBM jdbcDBM = null;
-
         // Everything can throw here SQLException we need to handle that!
 
-        try {
+        try (DatabaseUpdate databaseUpdate = new DatabaseUpdate("demo.properties");
+             DatabaseInfo databaseInfo = new DatabaseInfo("demo.properties");
+             DatabaseReadWrite databaseReadWrite = new DatabaseReadWrite("demo.properties")) {
 
-            jdbcDBM = new JdbcDBM();
-            //  jdbcDBM.updateEmail("John", "Doe", "legkalapacs@gmail.com");
-            //  jdbcDBM.insertNewRow("Arthur","Almodovar","arthur@gobabyplease.com","specOps",3000);
-            //  jdbcDBM.insertNewRow("Boby", "Supersonic", "bo@gil.com", "HR", 3000.12);
-            //  jdbcDBM.deleteUser("Supersonic","Boby");
-            //  jdbcDBM.selectEmployeesBySalaryAndDepartment(80000,"Legal");
-            //  System.out.println("******************************");
-            //  jdbcDBM.selectEmployeesBySalaryAndDepartment(25000,"HR");
-            //  jdbcDBM.increaseSalaryByDepartment("Engineering",10000);
-            //  jdbcDBM.greetDepartment("Engineering");
-            //  jdbcDBM.countEmployeeByDepartment("Engineering");
-            //  jdbcDBM.getEmployeesFromTheDepartment("Engineering");
-            //  jdbcDBM.deleteDepartmentAndUpdateSalary("HR","Engineering",300000);
-            jdbcDBM.schemaInfoTables("employees");
+            // Load the server config file here
+
             System.out.println("*****************************");
-            jdbcDBM.getMetaData();
+            //  databaseInfo.getMetaData();
+            //  databaseInfo.schemaInfoTables("employees");
+            //  databaseInfo.getEmployeesFromTheDepartment("HR");
+            //  databaseInfo.selectEmployeesBySalaryAndDepartment(60000,"Engineering");
+            //  databaseInfo.countEmployeeByDepartment("HR");
+            //  databaseInfo.getResultSetMetadata();
+            //  databaseInfo.getDatabase();
             System.out.println("******************************");
-            jdbcDBM.getResultSetMetadata();
+            //  databaseUpdate.insertNewRow("Bobo","Harrington","harry.bob@gmail.com","HR",300000);
+            //  databaseUpdate.updateEmail("John", "Doe", "legkalapacs@gmail.com");
+            //  databaseUpdate.deleteUser("Harrington","Bobo");
+            //  databaseUpdate.increaseSalaryByDepartment("Engineering",20000);
+            //  databaseUpdate.greetDepartment("HR");
+            //  databaseUpdate.deleteDepartmentAndUpdateSalary("Legal","HR",120000);
             System.out.println("******************************");
-            //  jdbcDBM.readEmployeeFileByEmail("john.doe@foo.com", "sample_resume.pdf");
-            //  jdbcDBM.writeEmployeeFileByEmail("john.doe@foo.com","resume_from_db.pdf");
-            //  jdbcDBM.readFileToColumnByEmail("john.doe@foo.com","sample_resume.txt");
-            jdbcDBM.writeOutFileByEmail("john.doe@foo.com","resume_from_db.txt");
-            System.out.println("****************************");
-            jdbcDBM.getDatabase();
+            //  databaseReadWrite.readEmployeeFileByEmail("john.doe@foo.com", "sample_blob.pdf");
+            //  databaseReadWrite.writeEmployeeFileByEmail("john.doe@foo.com","bigstuff_from_db.pdf");
+            //  databaseReadWrite.readFileToResumeByEmail("john.doe@foo.com","sample_resume.txt");
+            //  databaseReadWrite.writeOutFileByEmail("john.doe@foo.com","resume_from_db.txt");
 
-
-        } catch (SQLException | IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (jdbcDBM != null) {
-                    // We use the close resource method here
-                    jdbcDBM.closeResource();
-                }
-            } catch (SQLException | IOException e) {
-                e.printStackTrace();
-            }
         }
-
-
     }
 }
