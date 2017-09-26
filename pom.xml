@@ -37,9 +37,16 @@
         </dependency>
 
         <dependency>
+
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+
         <!--Megmondjuk neki hogy webes alkalmazást szeretnénk írni Tomcat/Jackson/spring dolgok-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -1,0 +1,34 @@
+
+
+// insert new collection
+
+db.car.insert({
+name: 'honda',
+make: 'accord',
+year: '2010'
+})
+
+// Change name of a collection
+
+db.car.update({
+
+ name: 'honda' 
+},
+{$set: {
+ name: 'ford'
+}
+})
+
+// Add a new key value to the car collection
+
+db.car.update({
+ name: 'ford' 
+},
+{$set: {
+ transmission: 'automatic'
+}
+},{$upsert: true})
+
+// Remove document
+
+db.car.remove({name: "ford"})
