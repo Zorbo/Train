@@ -18,7 +18,7 @@ public class Main {
        // Math m = new Math()
 
         int pw = 674523;
-        Password password = new Password(pw);
+        Password password = new ExtendedPassword(pw);
         password.storePassword();
 
         password.letMeIn(1);
@@ -27,5 +27,11 @@ public class Main {
         password.letMeIn(0);
         password.letMeIn(-1);
         password.letMeIn(674523);
+        System.out.println("******************************\n");
+
+        System.out.println("Main method called");
+        SIBTest test = new SIBTest();
+        test.someMethod();
+        System.out.println("Owner is " + SIBTest.owner);
     }
 }
